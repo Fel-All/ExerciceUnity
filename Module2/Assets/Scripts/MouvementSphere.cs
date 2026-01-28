@@ -10,6 +10,7 @@ public class MouvementSphere : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+
         sphereRigidBody = GetComponent<Rigidbody>();
         positionInitiale = transform.position;
         _move = InputSystem.actions.FindAction("Move");
@@ -24,7 +25,7 @@ public class MouvementSphere : MonoBehaviour
     void FixedUpdate()
     {
         Vector2 mouvement = _move.ReadValue<Vector2>();
-        Vector3 force = niveauForce* new Vector3(mouvement.y, 0, mouvement.x);
+        Vector3 force = niveauForce* new Vector3(mouvement.x, 0, mouvement.y);
         sphereRigidBody.AddForce(force);
     }
 
