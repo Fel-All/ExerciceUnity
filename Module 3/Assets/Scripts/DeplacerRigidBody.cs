@@ -4,7 +4,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class Deplacer2Coroutine : MonoBehaviour
+public class DeplacerRigidBody : MonoBehaviour
 {
     Vector2 positionSouris;
     [SerializeField]
@@ -14,10 +14,14 @@ public class Deplacer2Coroutine : MonoBehaviour
     [SerializeField]
     private float vitesse;
     private bool coroutine;
+    [SerializeField]
+    private GameObject obstacle;
+
+    private Rigidbody rb;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-
+        rb= GetComponent<Rigidbody>();
     }
 
     // Update is called once per frame
@@ -36,14 +40,10 @@ public class Deplacer2Coroutine : MonoBehaviour
             {
                 if (rayHits.collider.gameObject == terrain)
                 {
-                    if (coroutine)
-                    {
-                        StopAllCoroutines();
-                         coroutine = false;
-                    }
+                    StopAllCoroutines();
                     StartCoroutine(Rotation(rayHits.point));
                     StartCoroutine(Deplacer(rayHits.point));
-                    coroutine = true;
+               
                 }
             }
 
@@ -51,23 +51,31 @@ public class Deplacer2Coroutine : MonoBehaviour
     }
     IEnumerator Deplacer(Vector3 objectif)
     {
-        var direction = (objectif - transform.position).normalized;
+        var direction = (objectif - rb.position).normalized;
  
-        while(Vector3.Distance(transform.position, objectif) > 0.5f)
+        while(Vector3.Distance(rb.position, objectif) > 0.5f)
         {
-            transform.position += vitesse * Time.deltaTime * direction;
+            rb.position += vitesse * Time.deltaTime * direction;
             yield return null;
         }
     }
     IEnumerator Rotation(Vector3 objectif)
     {
         var vitesseRotation = 5.4f;
-        var direction = (objectif - transform.position).normalized;
+        var direction = (objectif - rb.position).normalized;
         var rotationFinale = Quaternion.LookRotation(direction);
-        while (transform.rotation != rotationFinale)
+        while (rb.rotation != rotationFinale)
         {
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationFinale, vitesseRotation * Time.deltaTime);
+            rb.rotation = Quaternion.RotateTowards(rb.rotation, rotationFinale, vitesseRotation * Time.deltaTime);
         }
         yield return null;
+    }
+
+     void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject == obstacle)
+        {
+            StopAllCoroutines();
+        }
     }
 }
