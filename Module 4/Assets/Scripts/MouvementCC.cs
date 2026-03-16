@@ -3,8 +3,8 @@ using UnityEngine.InputSystem;
 
 public class MouvementCC : MonoBehaviour
 {
-    [SerializeField] float magnitudeVitesse;
-    [SerializeField] float accel;
+   private float magnitudeVitesse;
+   
     private InputAction mouvementJoueur;
     private InputAction sprint;
     private CharacterController cc;
@@ -28,10 +28,11 @@ public class MouvementCC : MonoBehaviour
         velocite += Physics.gravity.y * Time.deltaTime;
         var mouv = mouvementJoueur.ReadValue<Vector2>();
         Vector3 direction = new Vector3(mouv.x, 0, mouv.y);
-        
+        magnitudeVitesse = ValeursJeu.Instance.vitesse;
+
         if (sprint.IsPressed())
         {
-            magnitudeVitesse *= accel;
+            magnitudeVitesse *= ValeursJeu.Instance.accel;
         }
         if (jump.IsPressed() && cc.isGrounded)
         {
