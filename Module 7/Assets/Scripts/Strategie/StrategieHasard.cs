@@ -1,0 +1,11 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+public class StrategieHasard : StratRessource
+{
+    public override TypeStrat Type => TypeStrat.Hasard;
+    public override int ChoisirRessource(Villageois villageois, List<Ressource> ressources)
+    {
+        return Random.Range(0, ressources.Count);
+    }
+}
