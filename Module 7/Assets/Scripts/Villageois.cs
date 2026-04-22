@@ -2,63 +2,70 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
-using Random = UnityEngine.Random;
 
 public class Villageois : MonoBehaviour
 {
-    private int or;
-    private int plantes;
-    private int roches;
-    private int numeroRessourceChoisie = -1;
-    private NavMeshAgent _navMeshAgent;
-    private StratRessource strat;
-    [SerializeField] private TMP_Text texteOr;
-    [SerializeField] private TMP_Text textePlantes;
-    [SerializeField] private TMP_Text texteRoches;
+    [SerializeField]
+    private TMP_Text texteOr;
 
-    private void Start()
+    [SerializeField]
+    private TMP_Text textePlantes;
+
+    [SerializeField]
+    private TMP_Text texteRoches;
+
+    public int or = 0;
+    public int plantes = 0;
+    public int roches = 0;
+    private int numeroRessourceChoisie = -1;
+    private NavMeshAgent navMeshAgent;
+    
+    private StrategieChoixRessource strategieChoix;
+
+    void Start()
     {
-        ChargerStrat();
-        _navMeshAgent = GetComponent<NavMeshAgent>();
+        ChargerStrategie();
+        navMeshAgent = GetComponent<NavMeshAgent>();
     }
 
-    private void Update()
+    void Update()
     {
         if (numeroRessourceChoisie == -1)
         {
-            AllerVersNouvelleRessource();
+            AllerVersProchaineRessource();
         }
-        else if (numeroRessourceChoisie != -1 && Vector3.Distance(_navMeshAgent.destination, transform.position) < 1.4f)
+        // Assez proche pour prendre la ressource
+        else if (Vector3.Distance(transform.position, navMeshAgent.destination) < 1.4f)
         {
-            var objet = GameManager.Instance.Ressources[numeroRessourceChoisie];
+            TypeRessource typeRessource = GameManager.Instance.ressources[numeroRessourceChoisie].type;
 
-            var ressource = objet.GetComponent<Ressource>();
-            if (ressource.Type == TypeRessource.Or)
-                or++;
-            else if (ressource.Type == TypeRessource.Plante)
-                plantes++;
-            else if (ressource.Type == TypeRessource.Roche)
-                roches++;
-
+            if (typeRessource == TypeRessource.Or) or++;
+            else if (typeRessource == TypeRessource.Plante) plantes++;
+            else if (typeRessource == TypeRessource.Roche) roches++;
+            
             MiseAJourTextes();
 
             GameManager.Instance.DetruireRessource(numeroRessourceChoisie);
-
-            AllerVersNouvelleRessource();
+            AllerVersProchaineRessource();
         }
     }
 
-    private void MiseAJourTextes()
+    public void MiseAJourTextes()
     {
         texteOr.text = "Or: " + or;
         textePlantes.text = "Plantes: " + plantes;
         texteRoches.text = "Roches: " + roches;
     }
 
-    private void AllerVersNouvelleRessource()
+    public void ChangerStrategieChoix(StrategieChoixRessource strategie)
     {
-        // Choix au hasard
-        List<Ressource> ressources = GameManager.Instance.Ressources;
+        strategieChoix = strategie;
+        AllerVersProchaineRessource();
+    }
+
+    private void AllerVersProchaineRessource()
+    {
+        List<Ressource> ressources = GameManager.Instance.ressources;
 
         if (ressources.Count == 0)
         {
@@ -66,41 +73,31 @@ public class Villageois : MonoBehaviour
         }
         else
         {
-            numeroRessourceChoisie = strat.ChoisirRessource(this, ressources);
+            numeroRessourceChoisie = strategieChoix.ChoisirRessource(this, ressources);
 
             Ressource ressource = ressources[numeroRessourceChoisie];
-
-            _navMeshAgent.destination = ressource.transform.position;
+            navMeshAgent.SetDestination(ressource.transform.position);
         }
     }
-
-
-
-    public void ChangerStrategie(StratRessource nouvStrat)
-    {
-        strat = nouvStrat;
-        AllerVersNouvelleRessource();
-    }
-
     private void OnApplicationQuit()
     {
-        PlayerPrefs.SetInt("TypeStrat", (int)strat.Type);
+        PlayerPrefs.SetInt("Strategie",(int)strategieChoix.Type);
     }
-
-    void ChargerStrat()
+    void ChargerStrategie()
     {
-        var stratChoix = PlayerPrefs.GetInt("TypeStrat");
-        switch ((TypeStrat)stratChoix)
-        {
-             case TypeStrat.Hasard:
-                strat = new StrategieHasard();
+       var strategieOriginale = PlayerPrefs.GetInt("Strategie");
+        switch ((TypeStrat)strategieOriginale) {
+            case TypeStrat.Equilibre:
+                strategieChoix = new StrategieChoixEquilibre();
                 break;
-             case TypeStrat.Proche:
-                strat = new StrategiePlusProche();
+            case TypeStrat.Hasard:
+                strategieChoix = new StrategieChoixHasard();
                 break;
-             case TypeStrat.Equilibre:
-                strat = new StrategieEquilibre();
+                case TypeStrat.Proche:
+                strategieChoix = new StrategieChoixPlusProche(); 
                 break;
+        
+        
         }
     }
 }

@@ -1,61 +1,103 @@
-using NUnit.Framework;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] private GameObject[] prefabsRessources;
-    [SerializeField] private int nbRessources;
+    [SerializeField]
+    private List<GameObject> prefabsRessources;
+
+    [SerializeField]
+    private int nbRessources;
+    [SerializeField] Villageois villageois;
+    private string nomFichierSauvegarde;
+    [HideInInspector]
+    public List<Ressource> ressources;
 
     public static GameManager Instance;
-    public List<Ressource> Ressources = new List<Ressource>();
-    public int NbRessourcesDisponibles { get; private set; }
 
-    private void Awake()
+    void Awake()
     {
         // Valide qu'il y a un seul GameManager
         Debug.Assert(Instance == null);
         Instance = this;
+
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        CreerRessources();
-    }
+	void Start()
+	{
+        nomFichierSauvegarde = Application.persistentDataPath + "/donnes-jeu.json"; 
 
-    private void CreerRessources()
-    {
-        
-        // Crée les ressources au début du jeu
-        for (int i = 0; i < nbRessources; i++)
+        if (File.Exists(nomFichierSauvegarde))
         {
-            float x = Random.value * 50 - 25;
-            float z = Random.value * 50 - 25;
-            Vector3 pos = new Vector3(x, 0.5f, z);
-            int choix = Random.Range(0, prefabsRessources.Length);
-            var objet = Instantiate(prefabsRessources[choix], pos, Quaternion.identity);
-            Ressources.Add(objet.GetComponent<Ressource>());
+            ChargerPartie();
         }
+        else
+        {
+            CreerRessources(nbRessources);
 
-      
+        }
     }
 
-    // Update is called once per frame
+    private void CreerRessources(int nbRess)
+    {
+        for (int i = 0; i < nbRess; i++)
+        {
+            float positionX = Random.Range(-25, 25);
+            float positionZ = Random.Range(-25, 25);
+            Vector3 position = new Vector3(positionX, 0.5f, positionZ);
+
+            int indexAleatoire = Random.Range(0, prefabsRessources.Count);
+            GameObject ressourceAleatoire = Instantiate(prefabsRessources[indexAleatoire], position, Quaternion.identity);
+            ressources.Add(ressourceAleatoire.GetComponent<Ressource>());
+        }
+    }
+
     void Update()
     {
-        if (Ressources.Count() == 0)
+        if (ressources.Count == 0)
         {
-            CreerRessources();
+            CreerRessources(nbRessources);
         }
     }
 
     public void DetruireRessource(int numeroRessourceChoisie)
     {
-        Ressource ressource = Ressources[numeroRessourceChoisie];
+        Ressource ressource = ressources[numeroRessourceChoisie];
         Destroy(ressource.gameObject);
-        Ressources.Remove(ressource);
+        ressources.Remove(ressource);
+    }
+
+    void SauvegardeJeu()
+    {
+        EtatJeu etatJeu = new EtatJeu();
+        etatJeu.Or = villageois.or;
+        etatJeu.Roches = villageois.roches;
+        etatJeu.Plantes = villageois.plantes;
+        etatJeu.NbRessourcesDispo = ressources.Count;
+
+        string json = JsonUtility.ToJson(etatJeu);
+        
+        File.WriteAllText(nomFichierSauvegarde,json);
+
+    }
+
+    private void OnApplicationQuit()
+    {
+        SauvegardeJeu();
+    }
+
+    private void ChargerPartie()
+    {
+        string json = File.ReadAllText(nomFichierSauvegarde);
+
+        EtatJeu etat = JsonUtility.FromJson<EtatJeu>(json);
+
+        villageois.or = etat.Or;
+        villageois.plantes = etat.Plantes;
+        villageois.roches = etat.Roches;
+        villageois.MiseAJourTextes();
+        CreerRessources(etat.NbRessourcesDispo);
     }
 }

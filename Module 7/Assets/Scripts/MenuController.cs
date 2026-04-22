@@ -2,23 +2,21 @@ using UnityEngine;
 
 public class MenuController : MonoBehaviour
 {
-    [SerializeField] private Villageois villageois;
+    [SerializeField]
+    private Villageois villageois;
 
-
-    public void StratHasard()
+    public void ChoixHasard()
     {
-        villageois.ChangerStrategie(new StrategieHasard());
+        villageois.ChangerStrategieChoix(new StrategieChoixHasard());
     }
 
-    public void StratPlusProche()
+    public void ChoixPlusProche()
     {
-        villageois.ChangerStrategie(new StrategiePlusProche());
-
-    }
-    public void StratEquilibre()
-    {
-        villageois.ChangerStrategie(new StrategieEquilibre());
-
+        villageois.ChangerStrategieChoix(new StrategieChoixPlusProche());
     }
 
+    public void ChoixEquilibre()
+    {
+        villageois.ChangerStrategieChoix(new StrategieChoixEquilibre());
+    }
 }
