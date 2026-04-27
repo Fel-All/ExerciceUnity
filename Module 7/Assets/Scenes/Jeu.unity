@@ -423,6 +423,7 @@ MonoBehaviour:
   - {fileID: 8728249533467376854, guid: 71a5924b8814b46329c6ee9bc5f718cb, type: 3}
   - {fileID: 6070212843742618542, guid: 36c1b4227f76e4567964f5bc3647095b, type: 3}
   nbRessources: 75
+  villageois: {fileID: 1894650302}
   ressources: []
 --- !u!4 &195563758
 Transform:
@@ -2323,6 +2324,9 @@ MonoBehaviour:
   texteOr: {fileID: 497486442}
   textePlantes: {fileID: 204181111}
   texteRoches: {fileID: 1850862892}
+  or: 0
+  plantes: 0
+  roches: 0
 --- !u!136 &1894650303
 CapsuleCollider:
   m_ObjectHideFlags: 0
